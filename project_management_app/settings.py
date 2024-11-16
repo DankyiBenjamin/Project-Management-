@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
-
+from decouple import config
+import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -81,6 +82,13 @@ DATABASES = {
     }
 }
 
+# connect to the postgres database on rails
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=config('DATABASE_URL')
+#     )
+# }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -117,6 +125,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# media files
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / "media"
+
+# templates directory
+TEMPLATES[0]['DIRS'] = [BASE_DIR / 'templates']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
