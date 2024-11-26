@@ -1,0 +1,22 @@
+{% extends 'management/base.html' %} {% block content %}
+<h1>{{ project.name }} - Project Details</h1>
+<p>{{ project.description }}</p>
+
+<h2>Tasks</h2>
+{%if tasks%}
+<ul>
+  {% for task in tasks %}
+  <li>
+    {{ task.name }} - Status: {{ task.status }} - Assigned to:
+    {{task.assigned_to }}
+  </li>
+  {% endfor %}
+</ul>
+{%else%}
+<p>No Task available</p>
+{%endif%}
+<a href="{% url 'create_task' project.id %}" class="btn btn-success"
+  >Create Task</a
+>
+
+{% endblock %}

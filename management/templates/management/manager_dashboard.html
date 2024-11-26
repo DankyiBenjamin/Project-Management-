@@ -1,0 +1,16 @@
+<!-- manager_dashboard.html -->
+
+{% extends 'management/base.html' %} {% block content %}
+<h1>Manager Dashboard</h1>
+<h2>Your Projects</h2>
+
+<ul>
+  {% for project in projects %}
+  <li>
+    <a href="{% url 'project_detail' project.id %}">{{ project.name }}</a>
+    - Progress: {{ project.progress }}%
+  </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

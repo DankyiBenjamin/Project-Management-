@@ -1,0 +1,44 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Project Management App{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <ul>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          {% if is_admin %}
+          <li><a href="{% url 'admin_dashboard' %}">Admin Dashboard</a></li>
+          {% endif %} {% if is_manager %}
+          <li><a href="{% url 'manager_dashboard' %}">Manager Dashboard</a></li>
+          {% endif %} {% if is_team_member %}
+          <li>
+            <a href="{% url 'team_member_dashboard' %}"
+              >Team Member Dashboard</a
+            >
+          </li>
+          {% endif %}
+          <li>
+            <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit">Logout</button>
+            </form>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      {% block content %}
+      <!-- Page-specific content will go here -->
+      {% endblock %}
+    </main>
+    <footer>
+      <p>&copy; 2024 Project Management App</p>
+    </footer>
+  </body>
+</html>

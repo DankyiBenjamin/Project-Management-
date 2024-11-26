@@ -1,0 +1,33 @@
+{% extends "management/base.html" %} {% block content %}
+<div class="container mt-5">
+  <h2>Admin Dashboard</h2>
+  <h3>Projects</h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Manager</th>
+        <th>Deadline</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for project in projects %}
+      <tr>
+        <td><a href="">{{ project.name }}</a></td>
+        <td>{{ project.manager }}</td>
+        <!-- Display the assigned manager -->
+        <td>{{ project.deadline }}</td>
+        <td>
+          <a href="{% url 'edit_project' project.id %}">Edit</a>
+          <a href="{% url 'delete_project' project.id %}">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <a href="{% url 'create_project' %}" class="btn btn-success"
+    >Create New Project</a
+  >
+</div>
+{% endblock %}

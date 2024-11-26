@@ -3,15 +3,27 @@ from django.db import models
 # Create your models here.
 from django.contrib.auth.models import User
 
-
 # Project Model
+
+
 class Project(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     start_date = models.DateField()
     deadline = models.DateField()
-    created_by = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='created_projects')
+    manager = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='projects')
+
+    # Related tasks
+    # tasks = models.ManyToManyField('Task', related_name='project_tasks')
+
+    @property
+    def progress(self):
+        total_tasks = self.tasks.count()
+        if total_tasks == 0:
+            return 0
+        completed_tasks = self.tasks.filter(status='completed').count()
+        return int((completed_tasks / total_tasks) * 100)
 
     def __str__(self):
         return self.name
@@ -83,3 +95,6 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.notification_type} for {self.user.username}"
+
+
+# defining roles

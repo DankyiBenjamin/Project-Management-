@@ -1,20 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Home</title>
-  </head>
-  <body>
-    <h1>Welcome, {{ user.username }}!</h1>
-    <p>
-      You are logged in. This is the home page of the Project Management App.
-    </p>
+{% extends 'management/base.html' %} {% block title %}Home {% endblock %}
+<!-- manager dashboard -->
+{% block content %}
 
-    <!-- Logout Button -->
-    <form method="post" action="{% url 'logout' %}">
-      {% csrf_token %}
-      <button type="submit">Logout</button>
-    </form>
-  </body>
-</html>
+<h1>Welcome, {{ user.username }}!</h1>
+<p>You are logged in. This is the home page of the Project Management App.</p>
+
+<!-- Logout Button -->
+<form method="post" action="{% url 'logout' %}">
+  {% csrf_token %}
+  <button type="submit">Logout</button>
+</form>
+
+{% endblock %}

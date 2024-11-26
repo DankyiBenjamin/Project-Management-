@@ -1,0 +1,29 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container mt-5">
+  <h2>{{ project.name }}</h2>
+  <p>{{ project.description }}</p>
+  <p>Start Date: {{ project.start_date }}</p>
+  <p>Deadline: {{ project.deadline }}</p>
+
+  <h4>Progress: {{ project.progress }}%</h4>
+
+  <!-- Optional: Display progress as a bar -->
+  <div class="progress">
+    <div
+      class="progress-bar"
+      role="progressbar"
+      style="width: {{ project.progress }}%"
+      aria-valuenow="{{ project.progress }}"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    ></div>
+  </div>
+
+  <h3>Tasks</h3>
+  <ul>
+    {% for task in project.tasks.all %}
+    <li>{{ task.name }} - {{ task.status }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
