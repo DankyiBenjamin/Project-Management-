@@ -1,0 +1,62 @@
+{% extends 'management/base.html' %} {% block content %}
+<div class="container mt-4">
+  <!-- Breadcrumb Navigation -->
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="{% url 'team_dashboard' %}">Dashboard</a>
+      </li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'team_dashboard' %}">Tasks</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">
+        {{ task.name }}
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Task Details Card -->
+  <div class="card">
+    <div class="card-header bg-primary text-white">
+      <h4>Task Details: {{ task.name }}</h4>
+    </div>
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Description:</strong>
+          <p>{{ task.description }}</p>
+        </div>
+        <div class="col-md-6">
+          <strong>Assigned To:</strong>
+          <p>{{ task.assigned_to}}</p>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Priority:</strong>
+          <p>{{ task.priority }}</p>
+        </div>
+        <div class="col-md-6">
+          <strong>Status:</strong>
+          <p>{{ task.get_status_display }}</p>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Deadline:</strong>
+          <p>{{ task.deadline }}</p>
+        </div>
+        <div class="col-md-6">
+          <strong>Project:</strong>
+          <p>{{ task.project.name }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer text-end">
+      <a href="{% url 'team_dashboard' %}" class="btn btn-secondary"
+        >Back to Dashboard</a
+      >
+    </div>
+  </div>
+</div>
+{% endblock %}

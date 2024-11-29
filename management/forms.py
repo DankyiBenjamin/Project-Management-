@@ -58,3 +58,17 @@ class TaskForm(forms.ModelForm):
     project = forms.ModelChoiceField(
         queryset=Project.objects.all(), required=True)
     deadline = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+
+
+# update the status of a task
+
+class TaskUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['status']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'status': 'Task Status',
+        }

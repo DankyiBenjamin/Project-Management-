@@ -1,0 +1,64 @@
+{% extends 'management/base.html' %} {% block content %}
+<div class="container mt-5">
+  <!-- Page Title -->
+  <h2 class="text-center mb-4">Team Member Dashboard</h2>
+
+  <!-- Tasks Table -->
+  <div class="card shadow">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>Task Name</th>
+            <th>Project</th>
+            <th>Priority</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in tasks %}
+          <tr>
+            <!-- Task Name with Link -->
+            <td>
+              <a href="{% url 'task_detail' task.id %}"> {{ task.name }} </a>
+            </td>
+            <!-- Project Name -->
+            <td>{{ task.project.name }}</td>
+            <!-- Priority -->
+            <td>
+              <span
+                class="badge {% if task.priority == 'High' %} bg-danger {% elif task.priority == 'Medium' %} bg-warning text-dark {% else %} bg-success {% endif %}"
+              >
+                {{ task.priority }}
+              </span>
+            </td>
+            <!-- Deadline -->
+            <td>{{ task.deadline }}</td>
+            <!-- Status -->
+            <td>{{ task.status }}</td>
+            <!-- Update Progress Button -->
+            <td>
+              <a
+                href="{% url 'update_task' task.id %}"
+                class="btn btn-primary btn-sm"
+              >
+                Update Progress
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <!-- Message for No Tasks -->
+          <tr>
+            <td colspan="6" class="text-center text-muted">
+              No tasks assigned to you.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

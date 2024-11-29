@@ -22,7 +22,7 @@ class Project(models.Model):
         total_tasks = self.tasks.count()
         if total_tasks == 0:
             return 0
-        completed_tasks = self.tasks.filter(status='completed').count()
+        completed_tasks = self.tasks.filter(status='Completed').count()
         return int((completed_tasks / total_tasks) * 100)
 
     def __str__(self):

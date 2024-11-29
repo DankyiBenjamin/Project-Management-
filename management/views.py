@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib import messages
+from django import forms
 
 
 from django.contrib.auth.forms import UserCreationForm
@@ -34,6 +35,10 @@ def is_admin(user):
 
 def is_manager(user):
     return user.groups.filter(name="Manager").exists()
+
+
+def is_team_member(user):
+    return user.groups.filter(name="Team Member").exists()
 
 
 # admin
@@ -158,22 +163,62 @@ def create_task(request, project_id):
     return render(request, 'management/create_task.html', {'form': form, 'project': project})
 
 
-@user_passes_test(is_manager)
+@login_required
 def update_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)
 
+    # Restrict team members to only update the status
+    if request.user.groups.filter(name="Team Member").exists():
+        class TeamMemberTaskUpdateForm(forms.ModelForm):
+            class Meta:
+                model = Task
+                fields = ['status']
+                widgets = {
+                    'status': forms.Select(attrs={'class': 'form-control'}),
+                }
+                labels = {
+                    'status': 'Task Status',
+                }
+        form_class = TeamMemberTaskUpdateForm
+    elif request.user.groups.filter(name="Manager").exists():
+        # Managers can update all fields
+        class ManagerTaskUpdateForm(forms.ModelForm):
+            class Meta:
+                model = Task
+                fields = ['name', 'description',
+                          'priority', 'status', 'deadline']
+                widgets = {
+                    'name': forms.TextInput(attrs={'class': 'form-control'}),
+                    'description': forms.Textarea(attrs={'class': 'form-control'}),
+                    'priority': forms.Select(attrs={'class': 'form-control'}),
+                    'status': forms.Select(attrs={'class': 'form-control'}),
+                    'deadline': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+                }
+                labels = {
+                    'name': 'Task Name',
+                    'description': 'Task Description',
+                    'priority': 'Priority',
+                    'status': 'Status',
+                    'deadline': 'Deadline',
+                }
+        form_class = ManagerTaskUpdateForm
+    else:
+        # If the user is not authorized, redirect
+        return redirect('team_dashboard')
+
+    # Handle form submission
     if request.method == 'POST':
-        form = TaskForm(request.POST, instance=task)
+        form = form_class(request.POST, instance=task)
         if form.is_valid():
             form.save()
-            # Redirect back to the manager's dashboard
-            return redirect('manager_dashboard')
+            return redirect('team_dashboard' if request.user.groups.filter(name="Team Member").exists() else 'manager_dashboard')
     else:
-        form = TaskForm(instance=task)
+        form = form_class(instance=task)
 
     return render(request, 'management/update_task.html', {'form': form, 'task': task})
 
 
+@login_required
 def project_detail(request, id):
     project = get_object_or_404(Project, id=id)
     tasks = project.tasks.all()  # Get tasks related to the project
@@ -182,6 +227,21 @@ def project_detail(request, id):
 
 
 # team members
-def team_member_dashboard(request):
-    context = ""
-    return render(request, 'management/team_member_dashboard.html', {'context': context})
+@user_passes_test(is_team_member)
+def team_dashboard(request):
+    assigned_task = Task.objects.filter(assigned_to=request.user)
+    print(assigned_task)
+    return render(request, 'management/team_dashboard.html', {'tasks': assigned_task})
+
+# task_details
+
+
+@login_required
+def task_detail(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+
+    # Restrict view to assigned team members
+    if task.assigned_to != request.user:
+        return HttpResponseForbidden("You do not have permission to view this task.")
+
+    return render(request, 'management/task_detail.html', {'task': task})
