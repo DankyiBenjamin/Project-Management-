@@ -28,4 +28,10 @@ urlpatterns = [
     path('team_dashboard/', views.team_dashboard, name="team_dashboard"),
     path('task/<int:task_id>/', views.task_detail, name='task_detail'),
 
+    #     comments
+    path('project/<int:project_id>/comments/',
+         views.comment_to_project, name='comment_to_project'),
+    path('task/<int:task_id>/comments/',
+         views.comment_to_task, name='comment_to_task'),
+
 ]

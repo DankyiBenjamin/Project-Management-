@@ -13,6 +13,9 @@
       <p><strong>Deadline:</strong> {{ project.deadline }}</p>
       <p><strong>Manager:</strong> {{ project.manager }}</p>
     </div>
+    <a href="{% url 'comment_to_project' project.id %}" class="btn btn-primary">
+      View/Add Comments
+    </a>
   </div>
 
   <!-- Task List -->
@@ -21,11 +24,13 @@
       class="card-header bg-primary text-white d-flex justify-content-between align-items-center"
     >
       <h4>Tasks</h4>
+      {% if is_manager %}
       <a
         href="{% url 'create_task' project.id %}"
         class="btn btn-success btn-sm"
         >+ Create Task</a
       >
+      {%endif%}
     </div>
     <div class="card-body">
       {% if tasks %}
@@ -43,16 +48,20 @@
             {% for task in tasks %}
             <tr>
               <td>
-                <a href="{% url 'update_task' task.id %}"> {{ task.name }} </a>
+                {% if is_manager %}
+                <a href="{% url 'task_detail' task.id %}"> {{ task.name }} </a>
+                {%else%} {{task.name}} {%endif%}
               </td>
               <td>{{ task.status }}</td>
               <td>{{ task.assigned_to }}</td>
               <td>
+                {% if is_manager %}
                 <a
                   href="{% url 'update_task' task.id %}"
                   class="btn btn-sm btn-outline-primary"
                   >Edit</a
                 >
+                {%endif%}
               </td>
             </tr>
             {% endfor %}

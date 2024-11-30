@@ -6,9 +6,9 @@ from django import forms
 
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import CustomUserCreationForm, ProjectForm, TaskForm
+from .forms import CustomUserCreationForm, ProjectForm, TaskForm, CommentForm
 from django.contrib.auth.models import User, Group
-from .models import Project, Task
+from .models import Project, Task, Comment
 # Create your views here.
 
 
@@ -240,8 +240,48 @@ def team_dashboard(request):
 def task_detail(request, task_id):
     task = get_object_or_404(Task, id=task_id)
 
-    # Restrict view to assigned team members
-    if task.assigned_to != request.user:
+    # Allow access to the assigned team member or the manager of the project
+    if task.assigned_to != request.user and task.project.manager != request.user:
         return HttpResponseForbidden("You do not have permission to view this task.")
 
     return render(request, 'management/task_detail.html', {'task': task})
+
+
+# comments to project
+def comment_to_project(request, project_id):
+    project = Project.objects.get(id=project_id)
+    comments = project.comments.all()
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.user = request.user
+            comment.project = project
+            comment.save()
+            return redirect('comment_to_project', project_id=project.id)
+    else:
+        form = CommentForm()
+    return render(request, 'management/comment_page.html', {'form': form, 'project': project, 'comments': comments, })
+
+
+# Add comment to task
+def comment_to_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    comments = task.comments.all()  # Fetch all comments related to the task
+
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.user = request.user
+            comment.task = task  # Link the comment to the task
+            comment.save()
+            return redirect('comment_to_task', task_id=task.id)
+    else:
+        form = CommentForm()
+
+    return render(request, 'management/comment_page.html', {
+        'task': task,
+        'comments': comments,
+        'form': form
+    })

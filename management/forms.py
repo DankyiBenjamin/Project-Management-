@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Project, Task
+from .models import Project, Task, Comment
 
 # custom user form
 
@@ -72,3 +72,14 @@ class TaskUpdateForm(forms.ModelForm):
         labels = {
             'status': 'Task Status',
         }
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['content'].widget = forms.Textarea(
+            attrs={'rows': 3, 'placeholder': 'Add your comment...'})

@@ -25,7 +25,12 @@
           <tr>
             <!-- Project Name -->
             <td>
-              <a href="#" class="text-decoration-none"> {{ project.name }} </a>
+              <a
+                href="{%url 'project_detail' project.id%}"
+                class="text-decoration-none"
+              >
+                {{ project.name }}
+              </a>
             </td>
             <!-- Assigned Manager -->
             <td>{{ project.manager }}</td>

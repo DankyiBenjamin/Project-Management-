@@ -1,0 +1,42 @@
+{% extends "management/base.html" %} {% block content %}
+<div class="container mt-5">
+  <h2>
+    {% if project %} Comments for Project: {{ project.name }} {% elif task %}
+    Comments for Task: {{ task.name }} {% endif %}
+  </h2>
+  <hr />
+
+  <!-- Display existing comments -->
+  <div class="comments-section">
+    <h4>Existing Comments</h4>
+    {% if comments %}
+    <ul class="list-group mb-4">
+      {% for comment in comments %}
+      <li class="list-group-item">
+        <p>{{ comment.content }}</p>
+        <small class="text-muted">
+          Posted by @{{ comment.user }} on
+          <!--  -->
+          {{ comment.created_at|date:"M d, Y H:i" }}
+        </small>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted">No comments yet.</p>
+    {% endif %}
+  </div>
+
+  <hr />
+
+  <!-- Add a new comment -->
+  <div class="add-comment-section">
+    <h4>Add a Comment</h4>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">{{ form.text.label_tag }} {{ form.text }}</div>
+      <button type="submit" class="btn btn-primary">Post Comment</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

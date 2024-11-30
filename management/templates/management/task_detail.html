@@ -53,6 +53,9 @@
       </div>
     </div>
     <div class="card-footer text-end">
+      <a href="{% url 'comment_to_task' task.id %}" class="btn btn-secondary"
+        >Comments</a
+      >
       <a href="{% url 'team_dashboard' %}" class="btn btn-secondary"
         >Back to Dashboard</a
       >
