@@ -1,7 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.contrib import messages
 from django import forms
+
+# websocket
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 
 from django.contrib.auth.forms import UserCreationForm
@@ -248,9 +252,14 @@ def task_detail(request, task_id):
 
 
 # comments to project
+@login_required
 def comment_to_project(request, project_id):
     project = Project.objects.get(id=project_id)
     comments = project.comments.all()
+# Restrict access to Admin or assigned Manager
+    if not (request.user.groups.filter(name='Admin').exists() or project.manager == request.user):
+        return HttpResponseForbidden("You do not have permission to comment on this project.")
+
     if request.method == "POST":
         form = CommentForm(request.POST)
         if form.is_valid():
@@ -258,16 +267,47 @@ def comment_to_project(request, project_id):
             comment.user = request.user
             comment.project = project
             comment.save()
-            return redirect('comment_to_project', project_id=project.id)
+
+            # broadcast comment
+            # Broadcast the comment
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"project_{project_id}",
+                {
+                    "type": "send_comment",
+                    "comment": {
+                        "content": comment.content,
+                        "user": comment.user.username,
+                        "created_at": comment.created_at.strftime('%B %d, %Y %H:%M'),
+                    },
+                }
+            )
+
+            # Handle AJAX response
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'comment': {
+                        'content': comment.content,
+                        'user': comment.user.username,
+                        'created_at': comment.created_at.strftime('%B %d, %Y %H:%M')
+                    }
+                })
+
+            return redirect('project_comments', project_id=project.id)
     else:
         form = CommentForm()
     return render(request, 'management/comment_page.html', {'form': form, 'project': project, 'comments': comments, })
 
 
 # Add comment to task
+@login_required
 def comment_to_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     comments = task.comments.all()  # Fetch all comments related to the task
+
+    # Restrict access to Manager or assigned Team Member
+    if not (task.project.manager == request.user or task.assigned_to == request.user):
+        return HttpResponseForbidden("You do not have permission to comment on this task.")
 
     if request.method == 'POST':
         form = CommentForm(request.POST)
@@ -276,6 +316,31 @@ def comment_to_task(request, task_id):
             comment.user = request.user
             comment.task = task  # Link the comment to the task
             comment.save()
+
+            # broadcast task
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"project_{task_id}",
+                {
+                    "type": "send_comment",
+                    "comment": {
+                        "content": comment.content,
+                        "user": comment.user.username,
+                        "created_at": comment.created_at.strftime('%B %d, %Y %H:%M'),
+                    },
+                }
+            )
+
+            # Handle AJAX response
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'comment': {
+                        'content': comment.content,
+                        'user': comment.user.username,
+                        'created_at': comment.created_at.strftime('%B %d, %Y %H:%M')
+                    }
+                })
+
             return redirect('comment_to_task', task_id=task.id)
     else:
         form = CommentForm()
@@ -285,3 +350,37 @@ def comment_to_task(request, task_id):
         'comments': comments,
         'form': form
     })
+
+# broadcast posts
+
+
+# def post_comment(request, project_id):
+#     if request.method == "POST":
+#         form = CommentForm(request.POST)
+#         if form.is_valid():
+#             comment = form.save(commit=False)
+#             comment.project_id = project_id
+#             comment.user = request.user
+#             comment.save()
+
+#             # Broadcast the comment
+#             channel_layer = get_channel_layer()
+#             async_to_sync(channel_layer.group_send)(
+#                 f"project_{project_id}",
+#                 {
+#                     "type": "send_comment",
+#                     "comment": {
+#                         "content": comment.content,
+#                         "user": comment.user.username,
+#                         "created_at": comment.created_at.strftime('%B %d, %Y %H:%M'),
+#                     },
+#                 }
+#             )
+
+#             if request.headers.get("x-requested-with") == "XMLHttpRequest":
+#                 return JsonResponse({"comment": {
+#                     "content": comment.content,
+#                     "user": comment.user.username,
+#                     "created_at": comment.created_at.strftime('%B %d, %Y %H:%M'),
+#                 }})
+#             return redirect("project_comments", project_id=project_id)

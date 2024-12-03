@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -71,7 +72,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'project_management_app.wsgi.application'
+ASGI_APPLICATION = 'project_management_app.asgi.application'
 
+
+# channel
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases

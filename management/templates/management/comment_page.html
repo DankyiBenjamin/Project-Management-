@@ -1,8 +1,13 @@
-{% extends "management/base.html" %} {% block content %}
+{% extends "management/base.html" %}
+
+{% block content %}
 <div class="container mt-5">
   <h2>
-    {% if project %} Comments for Project: {{ project.name }} {% elif task %}
-    Comments for Task: {{ task.name }} {% endif %}
+    {% if project %}
+    Comments for Project: {{ project.name }}
+    {% elif task %}
+    Comments for Task: {{ task.name }}
+    {% endif %}
   </h2>
   <hr />
 
@@ -10,19 +15,20 @@
   <div class="comments-section">
     <h4>Existing Comments</h4>
     {% if comments %}
-    <ul class="list-group mb-4">
+    <ul class="list-group mb-4" id="comment-list">
       {% for comment in comments %}
       <li class="list-group-item">
         <p>{{ comment.content }}</p>
         <small class="text-muted">
-          Posted by @{{ comment.user }} on
-          <!--  -->
-          {{ comment.created_at|date:"M d, Y H:i" }}
+          Posted by @{{ comment.user }} on {{ comment.created_at|date:"M d, Y H:i" }}
         </small>
       </li>
       {% endfor %}
     </ul>
     {% else %}
+    <ul class="list-group mb-4" id="comment-list">
+      <!-- No comments yet -->
+    </ul>
     <p class="text-muted">No comments yet.</p>
     {% endif %}
   </div>
@@ -32,11 +38,93 @@
   <!-- Add a new comment -->
   <div class="add-comment-section">
     <h4>Add a Comment</h4>
-    <form method="post">
+    <form id="comment-form" method="post" action=".">
       {% csrf_token %}
-      <div class="mb-3">{{ form.text.label_tag }} {{ form.text }}</div>
+      <div class="mb-3">
+        {{ form.as_p }}
+      </div>
       <button type="submit" class="btn btn-primary">Post Comment</button>
     </form>
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const projectId = {{ project.id }};
+    const commentList = document.getElementById("comment-list");
+
+    // Ensure commentList exists
+    if (!commentList) {
+      console.error("Error: 'comment-list' element not found in the DOM.");
+      return;
+    }
+
+    // WebSocket setup
+    const socket = new WebSocket(`ws://${window.location.host}/ws/comments/${projectId}/`);
+
+    // Listen for messages
+    socket.onmessage = function (event) {
+      const data = JSON.parse(event.data);
+      if (data.comment) {
+        const newComment = `
+          <li class="list-group-item">
+            <p>${data.comment.content}</p>
+            <small class="text-muted">
+              Posted by @${data.comment.user} on ${data.comment.created_at}
+            </small>
+          </li>
+        `;
+        commentList.insertAdjacentHTML("beforeend", newComment);
+      }
+    };
+
+    // Handle WebSocket errors
+    socket.onerror = function (error) {
+      console.error("WebSocket Error: ", error);
+    };
+
+    // AJAX for submitting a comment
+    document
+      .getElementById("comment-form")
+      .addEventListener("submit", async function (e) {
+        e.preventDefault(); // Prevent form from refreshing the page
+
+        const formData = new FormData(this);
+
+        try {
+          const response = await fetch(".", {
+            method: "POST",
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+              "X-CSRFToken": "{{ csrf_token }}",
+            },
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (data.comment) {
+            const newComment = `
+              <li class="list-group-item">
+                <p>${data.comment.content}</p>
+                <small class="text-muted">
+                  Posted by @${data.comment.user} on ${data.comment.created_at}
+                </small>
+              </li>
+            `;
+            commentList.insertAdjacentHTML("beforeend", newComment);
+            document.getElementById("comment-form").reset();
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert("An error occurred. Please try again.");
+        }
+      });
+  });
+</script>
+
 {% endblock %}
